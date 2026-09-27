@@ -445,15 +445,15 @@ endconst
 // Tab_53 twiddles (v28..v30) duplicated/pre-signed once, instead of per
 // transform: v8/v9 = -+tab[8,9]/[10,11], v25/v28/v29 = tab[0,1]/[2,3]/[4,5],
 // v10 = +-tab[6,7]. v30 keeps tab[8..11]. Callers preserve d8-d10.
-.macro FFT15_DERIVE_CONSTS
-        dup             v8.2d,  v30.d[0]
-        dup             v9.2d,  v30.d[1]
+.macro FFT15_DERIVE_CONSTS c0=v8, c1=v9
+        dup             \c0\().2d, v30.d[0]
+        dup             \c1\().2d, v30.d[1]
         dup             v10.2d, v29.d[1]
         dup             v25.2d, v28.d[0]
         dup             v28.2d, v28.d[1]
         dup             v29.2d, v29.d[0]
-        fmul            v8.4s,  v8.4s,  v31.4s
-        fmul            v9.4s,  v9.4s,  v31.4s
+        fmul            \c0\().4s, \c0\().4s, v31.4s
+        fmul            \c1\().4s, \c1\().4s, v31.4s
         fmul            v10.4s, v10.4s, v24.4s
 .endm
 
@@ -510,7 +510,7 @@ endconst
 // becomes a pair of quads holding 2 complex each. Uses the derived constants
 // and tab_15pt in v24 (dc fold sign); with hoist_strides=1 the caller
 // provides x6/x7 = stride*3/*5.
-.macro FFT15_CORE hoist_strides=0
+.macro FFT15_CORE hoist_strides=0, c0=v8, c1=v9
 .if \hoist_strides == 0
         add             x6, x3, x3, lsl #1                  // stride*3
         add             x7, x3, x3, lsl #2                  // stride*5
@@ -536,12 +536,12 @@ endconst
         fadd            v22.4s,  v6.4s,  v2.4s              // y[0,1] = in[11,12] + q[4,5]
         fmul            v21.4s,  v21.4s, v30.4s             // [dc] pc[0,1] scaled by tab[8..11]
         fadd            v23.4s,  v7.4s,  v3.4s              // y[2,3] = in[13,14] + q[6,7]
-        fmul            v16.4s,  v16.4s, v8.4s              // Q0[0,1]
+        fmul            v16.4s,  v16.4s, \c0\().4s              // Q0[0,1]
         ext             v26.16b, v21.16b, v21.16b, #8       // [dc] (pc[1], pc[0])
-        fmul            v17.4s,  v17.4s, v8.4s              // Q0[2,3]
+        fmul            v17.4s,  v17.4s, \c0\().4s              // Q0[2,3]
         fmla            v21.4s,  v26.4s, v24.4s             // [dc] (dc[1]_int, dc[2]_int)
-        fmla            v6.4s,   v2.4s,  v9.4s              // M[0,1] = in[11,12] + q*Q4mult
-        fmla            v7.4s,   v3.4s,  v9.4s              // M[2,3] = in[13,14] + q*Q4mult
+        fmla            v6.4s,   v2.4s,  \c1\().4s              // M[0,1] = in[11,12] + q*Q4mult
+        fmla            v7.4s,   v3.4s,  \c1\().4s              // M[2,3] = in[13,14] + q*Q4mult
         fmla            v1.4s,   v21.4s, v31.4s             // [dc] v1 = (dc[1], dc[2])  — DC done
         fsub            v4.4s,   v6.4s,  v16.4s             // k[0,1] = M[0,1] - Q0[0,1]
         fsub            v5.4s,   v7.4s,  v17.4s             // k[2,3] = M[2,3] - Q0[2,3]
@@ -644,8 +644,7 @@ endconst
 
 .macro FFT15_FN name, no_perm
 function ff_tx_fft15_\name\()_neon, export=1
-        stp             d8,  d9,  [sp, #-32]!
-        str             d10, [sp, #16]
+        str             d10, [sp, #-16]!
 
         SETUP_LUT       \no_perm
 
@@ -656,14 +655,11 @@ function ff_tx_fft15_\name\()_neon, export=1
         ld1             { v24.4s }, [x5]                    // sign mask
 
         LOAD_SUBADD
-        FFT15_DERIVE_CONSTS
-
+        FFT15_DERIVE_CONSTS c0=v18, c1=v19
         FFT15_LOAD      \no_perm
 
-        FFT15_CORE
-
-        ldr             d10, [sp, #16]
-        ldp             d8,  d9,  [sp], #32
+        FFT15_CORE      c0=v18, c1=v19
+        ldr             d10, [sp], #16
         ret
 endfunc
 .endm
