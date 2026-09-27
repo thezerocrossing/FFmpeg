@@ -110,11 +110,17 @@ void checkasm_check_av_tx(void)
     CHECK_TEMPLATE("float_fft", AV_TX_FLOAT_FFT, 0, AVComplexFloat, float, check_lens,
                    !float_near_abs_eps_array(out_ref, out_new, EPS, len*2));
 
+    CHECK_TEMPLATE("float_ifft", AV_TX_FLOAT_FFT, 1, AVComplexFloat, float, check_lens,
+                   !float_near_abs_eps_array(out_ref, out_new, EPS, len*2));
+
     CHECK_TEMPLATE("float_imdct", AV_TX_FLOAT_MDCT, 1, float, float, check_lens,
                    !float_near_abs_eps_array(out_ref, out_new, EPS, len));
 
     randomize_complex(in, 16384, AVComplexDouble, SCALE_NOOP);
     CHECK_TEMPLATE("double_fft", AV_TX_DOUBLE_FFT, 0, AVComplexDouble, double, check_lens,
+                   !double_near_abs_eps_array(out_ref, out_new, EPS, len*2));
+
+    CHECK_TEMPLATE("double_ifft", AV_TX_DOUBLE_FFT, 1, AVComplexDouble, double, check_lens,
                    !double_near_abs_eps_array(out_ref, out_new, EPS, len*2));
 
     av_free(in);
