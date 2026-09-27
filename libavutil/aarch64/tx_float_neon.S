@@ -673,14 +673,13 @@ FFT15_FN ns_float, 1
 // AVTXContext offsets: len=0, map=8, tmp=24, sub=32, fn[0]=40.
 .macro PFA_15_FN name, no_perm
 function ff_tx_fft_pfa_15xM_\name\()_neon, export=1
-        stp             x29, x30, [sp, #-128]!
-        stp             x19, x20, [sp, #16]
-        stp             x21, x22, [sp, #32]
-        stp             x23, x24, [sp, #48]
-        stp             x25, x26, [sp, #64]
-        stp             x27, x28, [sp, #80]
-        stp             d8,  d9,  [sp, #96]
-        str             d10, [sp, #112]
+        stp             x30, x19, [sp, #-112]!
+        stp             x20, x21, [sp, #16]
+        stp             x23, x24, [sp, #32]
+        stp             x25, x26, [sp, #48]
+        stp             x27, x28, [sp, #64]
+        stp             d8,  d9,  [sp, #80]
+        str             d10, [sp, #96]
 
         mov             x25, x0                     // root context
         mov             x26, x1                     // user out
@@ -727,14 +726,14 @@ function ff_tx_fft_pfa_15xM_\name\()_neon, export=1
 
         // out[i*stride] = s->tmp[out_map[i]], unrolled by 4 (len % 60 == 0)
         ldr             w19, [x25, #0]              // len
-        ldr             x22, [x25, #8]              // s->map
-        add             x22, x22, x19, lsl #2       // out_map = map + len
+        ldr             x4,  [x25, #8]              // s->map
+        add             x4,  x4, x19, lsl #2        // out_map = map + len
         mov             x10, x26
         lsl             x11, x27, #1                // 2*stride
         add             x12, x27, x11               // 3*stride
 3:
-        ldp             w13, w14, [x22], #8         // out_map[i,   i+1]
-        ldp             w15, w16, [x22], #8         // out_map[i+2, i+3]
+        ldp             w13, w14, [x4], #8          // out_map[i,   i+1]
+        ldp             w15, w16, [x4], #8          // out_map[i+2, i+3]
         ldr             d0,  [x20, x13, lsl #3]
         ldr             d1,  [x20, x14, lsl #3]
         ldr             d2,  [x20, x15, lsl #3]
@@ -747,14 +746,13 @@ function ff_tx_fft_pfa_15xM_\name\()_neon, export=1
         subs            w19, w19, #4
         b.gt            3b
 
-        ldp             x19, x20, [sp, #16]
-        ldp             x21, x22, [sp, #32]
-        ldp             x23, x24, [sp, #48]
-        ldp             x25, x26, [sp, #64]
-        ldp             x27, x28, [sp, #80]
-        ldp             d8,  d9,  [sp, #96]
-        ldr             d10, [sp, #112]
-        ldp             x29, x30, [sp], #128
+        ldp             x20, x21, [sp, #16]
+        ldp             x23, x24, [sp, #32]
+        ldp             x25, x26, [sp, #48]
+        ldp             x27, x28, [sp, #64]
+        ldp             d8,  d9,  [sp, #80]
+        ldr             d10, [sp, #96]
+        ldp             x30, x19, [sp], #112
         ret
 endfunc
 .endm
