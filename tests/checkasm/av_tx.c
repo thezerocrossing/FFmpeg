@@ -41,7 +41,7 @@
     } while (0)
 
 static const int check_lens[] = {
-    2, 4, 8, 16, 32, 64, 120, 960, 1024, 1920, 16384,
+    2, 4, 8, 15, 16, 32, 64, 120, 960, 1024, 1920, 16384,
 };
 
 static AVTXContext *tx_refs[AV_TX_NB][2 /* Direction */][FF_ARRAY_ELEMS(check_lens)] = { 0 };
