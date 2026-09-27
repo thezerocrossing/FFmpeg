@@ -610,39 +610,35 @@ endconst
         fmul            v17.4s, v17.4s, v31.4s                // u1
         fmul            v20.4s, v20.4s, v31.4s                // u2
 
-        // Hide final multiply latency with independent address generation.
-        add             x10, x1, x6, lsl #1                   // &out[6]
+        // Use register-offset stores for the low halves.
+        lsl             x10, x3, #2                           // stride*4
+
         add             x11, x1, x6                           // &out[3]
         fsub            v7.4s,  v6.4s,  v16.4s                // (out6, out3)
         fadd            v6.4s,  v6.4s,  v16.4s                // (out9, out12)
-        add             x12, x8, x3, lsl #2                   // &out[9]
-        add             x13, x1, x6, lsl #2                   // &out[12]
-        st1             { v7.d }[0], [x10]
+        add             x12, x1, x6, lsl #2                   // &out[12]
+        str             d7, [x8, x3]
         st1             { v7.d }[1], [x11]
-        st1             { v6.d }[0], [x12]
-        st1             { v6.d }[1], [x13]
+        str             d6, [x8, x10]
+        st1             { v6.d }[1], [x12]
 
-        add             x10, x1, x3                           // &out[1]
         add             x11, x9, x6                           // &out[13]
         fsub            v23.4s, v18.4s, v17.4s                // (out1, out13)
         fadd            v22.4s, v18.4s, v17.4s                // (out4, out7)
-        add             x12, x1, x3, lsl #2                   // &out[4]
-        add             x13, x8, x3, lsl #1                   // &out[7]
-        st1             { v23.d }[0], [x10]
+        add             x12, x8, x3, lsl #1                   // &out[7]
+        str             d23, [x1, x3]
         st1             { v23.d }[1], [x11]
-        st1             { v22.d }[0], [x12]
-        st1             { v22.d }[1], [x13]
+        str             d22, [x1, x10]
+        st1             { v22.d }[1], [x12]
 
-        add             x10, x9, x3                           // &out[11]
         add             x11, x1, x3, lsl #3                   // &out[8]
         fsub            v5.4s,  v19.4s, v20.4s                // (out11, out8)
         fadd            v4.4s,  v19.4s, v20.4s                // (out14, out2)
-        add             x12, x9, x3, lsl #2                   // &out[14]
-        add             x13, x1, x3, lsl #1                   // &out[2]
-        st1             { v5.d }[0], [x10]
+        add             x12, x1, x3, lsl #1                   // &out[2]
+        str             d5, [x9, x3]
         st1             { v5.d }[1], [x11]
-        st1             { v4.d }[0], [x12]
-        st1             { v4.d }[1], [x13]
+        str             d4, [x9, x10]
+        st1             { v4.d }[1], [x12]
 .endm
 
 .macro FFT15_FN name, no_perm
