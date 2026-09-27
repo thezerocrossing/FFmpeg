@@ -609,35 +609,38 @@ endconst
         fmul            v16.4s, v16.4s, v31.4s                // u0
         fmul            v17.4s, v17.4s, v31.4s                // u1
         fmul            v20.4s, v20.4s, v31.4s                // u2
-        fsub            v7.4s,  v6.4s,  v16.4s                // (out6, out3)   = m0 + rot
-        fadd            v6.4s,  v6.4s,  v16.4s                // (out9, out12)  = m0 - rot
-        fsub            v23.4s, v18.4s, v17.4s                // (out1, out13)
-        fadd            v22.4s, v18.4s, v17.4s                // (out4, out7)
-        fsub            v5.4s,  v19.4s, v20.4s                // (out11, out8)
-        fadd            v4.4s,  v19.4s, v20.4s                // (out14, out2)
 
+        // Hide final multiply latency with independent address generation.
         add             x10, x1, x6, lsl #1                   // &out[6]
         add             x11, x1, x6                           // &out[3]
-        st1             { v7.d }[0], [x10]
-        st1             { v7.d }[1], [x11]
+        fsub            v7.4s,  v6.4s,  v16.4s                // (out6, out3)
+        fadd            v6.4s,  v6.4s,  v16.4s                // (out9, out12)
         add             x12, x8, x3, lsl #2                   // &out[9]
         add             x13, x1, x6, lsl #2                   // &out[12]
+        st1             { v7.d }[0], [x10]
+        st1             { v7.d }[1], [x11]
         st1             { v6.d }[0], [x12]
         st1             { v6.d }[1], [x13]
+
         add             x10, x1, x3                           // &out[1]
         add             x11, x9, x6                           // &out[13]
-        st1             { v23.d }[0], [x10]
-        st1             { v23.d }[1], [x11]
+        fsub            v23.4s, v18.4s, v17.4s                // (out1, out13)
+        fadd            v22.4s, v18.4s, v17.4s                // (out4, out7)
         add             x12, x1, x3, lsl #2                   // &out[4]
         add             x13, x8, x3, lsl #1                   // &out[7]
+        st1             { v23.d }[0], [x10]
+        st1             { v23.d }[1], [x11]
         st1             { v22.d }[0], [x12]
         st1             { v22.d }[1], [x13]
+
         add             x10, x9, x3                           // &out[11]
         add             x11, x1, x3, lsl #3                   // &out[8]
-        st1             { v5.d }[0], [x10]
-        st1             { v5.d }[1], [x11]
+        fsub            v5.4s,  v19.4s, v20.4s                // (out11, out8)
+        fadd            v4.4s,  v19.4s, v20.4s                // (out14, out2)
         add             x12, x9, x3, lsl #2                   // &out[14]
         add             x13, x1, x3, lsl #1                   // &out[2]
+        st1             { v5.d }[0], [x10]
+        st1             { v5.d }[1], [x11]
         st1             { v4.d }[0], [x12]
         st1             { v4.d }[1], [x13]
 .endm
